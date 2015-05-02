@@ -8,7 +8,7 @@ case $1 in
   ("ubuntu")
     ;;
   ("cygwin")
-    cygwin-setup -q -P unzip ;;
+    cygwin-setup.exe -q -P unzip ;;
   (*)
     echo "Usage: ./install_prereqs.sh package_manager"
     echo "where package_manager is one of the following: "
