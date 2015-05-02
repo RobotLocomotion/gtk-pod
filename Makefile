@@ -1,3 +1,6 @@
+
+ifeq ($(shell uname -o 2> /dev/null),Cygwin)
+
 DL_FILE := gtk+-bundle_3.6.4-20130921_win32.zip
 DL_LINK := http://win32builder.gnome.org/
 UNZIP_DIR := gtk3
@@ -71,3 +74,13 @@ $(BUILD_PREFIX)/lib/libgthread-2.0-0.dll : $(BUILD_PREFIX)/lib/libglib-2.0-0.dll
 # Default to a less-verbose build.  If you want all the gory compiler output,
 # run "make VERBOSE=1"
 $(VERBOSE).SILENT:
+
+else
+
+# if not windows/cygwin, then do nothing
+
+all: 
+	
+clean: 
+	
+endif
