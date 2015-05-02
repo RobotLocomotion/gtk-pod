@@ -17,6 +17,7 @@ GTK_DIR := $(shell pwd)/$(UNZIP_DIR)
 
 define GLIB_PC
 Name: glib-2.0
+Description: GLIB as packaged by the GTK+ bundle
 Requires: 
 Version: 2.34.3
 Libs: -L$(GTK_DIR)/lib -lglib-2.0 -lws2_32 -lwinmm
@@ -25,6 +26,7 @@ endef
 
 define GTHREAD_PC
 Name: gthread-2.0
+Description: GThread as packaged by the GTK+ bundle
 Requires: glib-2.0
 Version: 2.34.3
 Libs: -L$(GTK_DIR)/lib -lgthread-2.0
