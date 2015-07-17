@@ -65,7 +65,7 @@ $(UNZIP_DIR)/bin/libglib-2.0-0.dll :
 	wget -T 60 $(DL_LINK)/$(DL_FILE)
 	@echo "\nunzipping to $(UNZIP_DIR) \n\n"
 	unzip $(DL_FILE) -d $(UNZIP_DIR) && rm $(DL_FILE)
-	@echo "\nBUILD_PREFIX: $(BUILD_PREFIX)\n\n"
+	@echo "BUILD_PREFIX: $(BUILD_PREFIX)"
 
 $(BUILD_PREFIX)/lib/pkgconfig/glib-2.0.pc: $(BUILD_PREFIX)/lib/libglib-2.0-0.dll $(BUILD_PREFIX)/lib/libintl-8.dll
 	echo "writing $@"
