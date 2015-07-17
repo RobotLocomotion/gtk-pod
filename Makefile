@@ -5,16 +5,35 @@ DL_FILE := gtk+-bundle_3.6.4-20130921_win32.zip
 DL_LINK := http://win32builder.gnome.org/
 UNZIP_DIR := gtk3
 
+BUILD_SYSTEM:=$(OS)
+ifeq ($(BUILD_SYSTEM),Windows_NT)
+BUILD_SYSTEM:=$(shell uname -o 2> NUL || echo Windows_NT) # set to Cygwin if appropriate
+else
+BUILD_SYSTEM:=$(shell uname -s)
+endif
+BUILD_SYSTEM:=$(strip $(BUILD_SYSTEM))
+
 # Figure out where to build the software.
 #   Use BUILD_PREFIX if it was passed in.
 #   If not, search up to four parent directories for a 'build' directory.
 #   Otherwise, use ./build.
+ifeq ($(BUILD_SYSTEM), Windows_NT)
 ifeq "$(BUILD_PREFIX)" ""
-BUILD_PREFIX:=$(shell for pfx in .. ../.. ../../.. ../../../..; do d=`pwd`/$$pfx/build;\
-	if [ -d $$d ]; then echo $$d; exit 0; fi; done; echo `pwd`/build)
+BUILD_PREFIX:=$(shell (for %%x in (. .. ..\.. ..\..\.. ..\..\..\..) do ( if exist %cd%\%%x\build ( echo %cd%\%%x\build & exit ) )) & echo %cd%\build )
+endif
+# don't clean up and create build dir as I do in linux.  instead create it during configure.
+else
+ifeq "$(BUILD_PREFIX)" ""
+BUILD_PREFIX:=$(shell for pfx in ./ .. ../.. ../../.. ../../../..; do d=`pwd`/$$pfx/build;\
+               if [ -d $$d ]; then echo $$d; exit 0; fi; done; echo `pwd`/build)
 endif
 # create the build directory if needed, and normalize its path name
 BUILD_PREFIX:=$(shell mkdir -p $(BUILD_PREFIX) && cd $(BUILD_PREFIX) && echo `pwd`)
+endif
+
+ifeq "$(BUILD_SYSTEM)" "Cygwin"
+  BUILD_PREFIX:=$(shell cygpath -m $(BUILD_PREFIX))
+endif
 
 GTK_DIR := $(shell pwd)/$(UNZIP_DIR)
 
@@ -58,7 +77,11 @@ $(BUILD_PREFIX)/lib/pkgconfig/gthread-2.0.pc: $(BUILD_PREFIX)/lib/libgthread-2.0
 
 $(BUILD_PREFIX)/lib/% : $(UNZIP_DIR)/bin/%
 	echo "installing $@"
+ifeq ($(BUILD_SYSTEM), Windows_NT)
+	copy $< $@
+else
 	cp -f $< $@
+endif
 
 clean:
 	-( cd $(BUILD_PREFIX)/lib/pkgconfig && rm glib-2.0.pc gthread-2.0.pc )
