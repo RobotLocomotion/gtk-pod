@@ -1,7 +1,11 @@
 
 ifeq ($(shell uname -o 2> /dev/null),Cygwin)
 
+ifeq (,$(findstring Win64,$(CMAKE_FLAGS)))
 DL_FILE := gtk+-bundle_3.6.4-20130921_win32.zip
+else
+DL_FILE := gtk+-bundle_3.6.4-20131201_win64.zip
+endif
 DL_LINK := http://win32builder.gnome.org/
 UNZIP_DIR := gtk3
 
@@ -103,7 +107,7 @@ else
 # if not windows/cygwin, then do nothing
 
 all: 
-	
+
 clean: 
-	
+
 endif
