@@ -62,6 +62,8 @@ endef
 
 all: install
 
+configure:
+
 install: $(BUILD_PREFIX)/lib/pkgconfig/glib-2.0.pc $(BUILD_PREFIX)/lib/pkgconfig/gthread-2.0.pc
 
 $(UNZIP_DIR)/bin/libglib-2.0-0.dll :
@@ -107,6 +109,8 @@ else
 # if not windows/cygwin, then do nothing
 
 all: 
+
+configure:
 
 clean: 
 
