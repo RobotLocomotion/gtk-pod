@@ -37,6 +37,10 @@ endif
 
 ifeq "$(BUILD_SYSTEM)" "Cygwin"
   BUILD_PREFIX:=$(shell cygpath -m $(BUILD_PREFIX))
+  BUILD_PREFIX_MAKE:=$(shell cygpath $(BUILD_PREFIX))
+  $(shell mkdir -p $(BUILD_PREFIX)/lib/pkgconfig)
+else
+  BUILD_PREFIX_MAKE:=BUILD_PREFIX
 endif
 
 GTK_DIR := $(shell pwd)/$(UNZIP_DIR)
@@ -64,7 +68,7 @@ all: install
 
 configure:
 
-install: $(BUILD_PREFIX)/lib/pkgconfig/glib-2.0.pc $(BUILD_PREFIX)/lib/pkgconfig/gthread-2.0.pc
+install: $(BUILD_PREFIX_MAKE)/lib/pkgconfig/glib-2.0.pc $(BUILD_PREFIX_MAKE)/lib/pkgconfig/gthread-2.0.pc
 
 $(UNZIP_DIR)/bin/libglib-2.0-0.dll :
 	@echo "\nDownloading GTK+ all-in-one bundle \n\n"
@@ -73,15 +77,15 @@ $(UNZIP_DIR)/bin/libglib-2.0-0.dll :
 	unzip $(DL_FILE) -d $(UNZIP_DIR) && rm $(DL_FILE)
 	@echo "BUILD_PREFIX: $(BUILD_PREFIX)"
 
-$(BUILD_PREFIX)/lib/pkgconfig/glib-2.0.pc: $(BUILD_PREFIX)/lib/libglib-2.0-0.dll $(BUILD_PREFIX)/lib/libintl-8.dll
+$(BUILD_PREFIX_MAKE)/lib/pkgconfig/glib-2.0.pc: $(BUILD_PREFIX_MAKE)/lib/libglib-2.0-0.dll $(BUILD_PREFIX_MAKE)/lib/libintl-8.dll
 	echo "writing $@"
 	$(file > $@,$(GLIB_PC))
 
-$(BUILD_PREFIX)/lib/pkgconfig/gthread-2.0.pc: $(BUILD_PREFIX)/lib/libgthread-2.0-0.dll
+$(BUILD_PREFIX_MAKE)/lib/pkgconfig/gthread-2.0.pc: $(BUILD_PREFIX_MAKE)/lib/libgthread-2.0-0.dll
 	echo "writing $@"
 	$(file > $@,$(GTHREAD_PC))
 
-$(BUILD_PREFIX)/lib/% : $(UNZIP_DIR)/bin/%
+$(BUILD_PREFIX_MAKE)/lib/% : $(UNZIP_DIR)/bin/%
 	echo "installing $@"
 ifeq ($(BUILD_SYSTEM), Windows_NT)
 	copy $< $@
@@ -90,14 +94,14 @@ else
 endif
 
 clean:
-	-( cd $(BUILD_PREFIX)/lib/pkgconfig && rm glib-2.0.pc gthread-2.0.pc )
-	-( cd $(BUILD_PREFIX)/lib && rm libglib-2.0-0.dll libgthread-2.0-0.dll libintl-8.dll libiconv-2.dll pthreadGC2.dll )
+	-( cd $(BUILD_PREFIX_MAKE)/lib/pkgconfig && rm glib-2.0.pc gthread-2.0.pc )
+	-( cd $(BUILD_PREFIX_MAKE)/lib && rm libglib-2.0-0.dll libgthread-2.0-0.dll libintl-8.dll libiconv-2.dll pthreadGC2.dll )
 
 # library dependencies (figured out using depends.exe)
 
-$(BUILD_PREFIX)/lib/libintl-8.dll : $(BUILD_PREFIX)/lib/libiconv-2.dll $(BUILD_PREFIX)/lib/pthreadGC2.dll
+$(BUILD_PREFIX_MAKE)/lib/libintl-8.dll : $(BUILD_PREFIX_MAKE)/lib/libiconv-2.dll $(BUILD_PREFIX_MAKE)/lib/pthreadGC2.dll
 
-$(BUILD_PREFIX)/lib/libgthread-2.0-0.dll : $(BUILD_PREFIX)/lib/libglib-2.0-0.dll
+$(BUILD_PREFIX_MAKE)/lib/libgthread-2.0-0.dll : $(BUILD_PREFIX_MAKE)/lib/libglib-2.0-0.dll
 
 
 # Default to a less-verbose build.  If you want all the gory compiler output,
