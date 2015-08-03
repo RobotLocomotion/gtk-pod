@@ -70,7 +70,7 @@ configure:
 
 install: $(BUILD_PREFIX_MAKE)/lib/pkgconfig/glib-2.0.pc $(BUILD_PREFIX_MAKE)/lib/pkgconfig/gthread-2.0.pc
 
-$(UNZIP_DIR)/bin/libglib-2.0-0.dll :
+$(UNZIP_DIR)/bin/libglib-2.0-0.dll $(UNZIP_DIR)/bin/libintl-8.dll $(UNZIP_DIR)/bin/libgthread-2.0-0.dll $(UNZIP_DIR)/bin/libiconv-2.dll $(UNZIP_DIR)/bin/pthreadGC2.dll :
 	@echo "\nDownloading GTK+ all-in-one bundle \n\n"
 	wget -T 60 $(DL_LINK)/$(DL_FILE)
 	@echo "\nunzipping to $(UNZIP_DIR) \n\n"
@@ -85,6 +85,7 @@ $(BUILD_PREFIX_MAKE)/lib/pkgconfig/gthread-2.0.pc: $(BUILD_PREFIX_MAKE)/lib/libg
 	echo "writing $@"
 	$(file > $@,$(GTHREAD_PC))
 
+.PRECIOUS: $(UNZIP)/bin/%
 $(BUILD_PREFIX_MAKE)/lib/% : $(UNZIP_DIR)/bin/%
 	echo "installing $@"
 ifeq ($(BUILD_SYSTEM), Windows_NT)
