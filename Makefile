@@ -1,5 +1,4 @@
 
-ifeq ($(shell uname -o 2> /dev/null),Cygwin)
 
 ifeq (,$(findstring Win64,$(CMAKE_FLAGS)))
 DL_FILE := gtk+-bundle_3.6.4-20130921_win32.zip
@@ -16,6 +15,8 @@ else
 BUILD_SYSTEM:=$(shell uname -s)
 endif
 BUILD_SYSTEM:=$(strip $(BUILD_SYSTEM))
+
+ifeq ($(OS),Windows_NT)
 
 # Figure out where to build the software.
 #   Use BUILD_PREFIX if it was passed in.
@@ -40,7 +41,7 @@ ifeq "$(BUILD_SYSTEM)" "Cygwin"
   BUILD_PREFIX_MAKE:=$(shell cygpath $(BUILD_PREFIX))
   $(shell mkdir -p $(BUILD_PREFIX)/lib/pkgconfig)
 else
-  BUILD_PREFIX_MAKE:=BUILD_PREFIX
+  BUILD_PREFIX_MAKE:=$(BUILD_PREFIX)
 endif
 
 GTK_DIR := $(shell pwd)/$(UNZIP_DIR)
@@ -114,6 +115,7 @@ else
 # if not windows/cygwin, then do nothing
 
 all: 
+	@echo "BUILD_SYSTEM: $(BUILD_SYSTEM)"
 
 configure:
 
