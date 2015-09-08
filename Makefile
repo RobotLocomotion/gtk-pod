@@ -1,5 +1,4 @@
 
-
 ifeq (,$(findstring Win64,$(CMAKE_FLAGS)))
 DL_FILE := gtk+-bundle_3.6.4-20130921_win32.zip
 else
@@ -15,6 +14,9 @@ else
 BUILD_SYSTEM:=$(shell uname -s)
 endif
 BUILD_SYSTEM:=$(strip $(BUILD_SYSTEM))
+ifeq ($(BUILD_SYSTEM),Msys)
+BUILD_SYSTEM:=Cygwin
+endif
 
 ifeq ($(OS),Windows_NT)
 
@@ -36,6 +38,8 @@ endif
 BUILD_PREFIX:=$(shell mkdir -p $(BUILD_PREFIX) && cd $(BUILD_PREFIX) && echo `pwd`)
 endif
 
+ifeq ($(BUILD_SYSTEM),$(filter $(BUILD_SYSTEM),Cygwin Windows_NT))  # the unfortunate syntax for a logic OR in gnu make (http://stackoverflow.com/a/9802777)
+
 ifeq "$(BUILD_SYSTEM)" "Cygwin"
   BUILD_PREFIX:=$(shell cygpath -m $(BUILD_PREFIX))
   BUILD_PREFIX_MAKE:=$(shell cygpath $(BUILD_PREFIX))
@@ -49,7 +53,7 @@ GTK_DIR := $(shell pwd)/$(UNZIP_DIR)
 define GLIB_PC
 Name: glib-2.0
 Description: GLIB as packaged by the GTK+ bundle
-Requires: 
+Requires:
 Version: 2.34.3
 Libs: -L$(GTK_DIR)/lib -lglib-2.0 -lws2_32 -lwinmm
 Cflags: -I$(GTK_DIR)/include/glib-2.0 -I$(GTK_DIR)/lib/glib-2.0/include
@@ -61,7 +65,7 @@ Description: GThread as packaged by the GTK+ bundle
 Requires: glib-2.0
 Version: 2.34.3
 Libs: -L$(GTK_DIR)/lib -lgthread-2.0
-Cflags: 
+Cflags:
 endef
 
 
@@ -110,15 +114,13 @@ $(BUILD_PREFIX_MAKE)/lib/libgthread-2.0-0.dll : $(BUILD_PREFIX_MAKE)/lib/libglib
 # run "make VERBOSE=1"
 $(VERBOSE).SILENT:
 
-else
+else # if not windows/cygwin, then do nothing
 
-# if not windows/cygwin, then do nothing
-
-all: 
-	@echo "BUILD_SYSTEM: $(BUILD_SYSTEM)"
+all:
+	@echo "GTK is not supported for this build system (BUILD_SYSTEM = $(BUILD_SYSTEM)), so will not be installed"
 
 configure:
 
-clean: 
+clean:
 
 endif
