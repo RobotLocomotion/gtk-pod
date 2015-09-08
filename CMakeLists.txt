@@ -25,13 +25,16 @@ if (WIN32)
                 gtk3/bin/pthreadGC2.dll
           DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
+  # note: using gtk3 dir libpath (instead of installed path) because of .lib files
+  # using gtk3 dir for include files
+  # would be cleaner to install all of them.  will do it another day!
   file(WRITE ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/glib-2.0.pc
       "Name: glib-2.0\n"
       "Description: GLIB as packaged by the GTK+ bundle\n"
       "Requires:\n"
       "Version: 2.34.3\n"
       "Libs: -L${PROJECT_SOURCE_DIR}/gtk3/lib -lglib-2.0 -lws2_32 -lwinmm\n"
-      "Cflags: -I${PROJECT_SOURCE_DIR}/gtk3/include/glib-2.0 -I$(GTK_DIR)/lib/glib-2.0/include\n"
+      "Cflags: -I${PROJECT_SOURCE_DIR}/gtk3/include/glib-2.0 -I${PROJECT_SOURCE_DIR}/gtk3/lib/glib-2.0/include\n"
       )
 
   file(WRITE ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/gthread-2.0.pc
