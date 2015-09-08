@@ -31,7 +31,7 @@ if (WIN32)
       "Requires:\n"
       "Version: 2.34.3\n"
       "Libs: -L${PROJECT_SOURCE_DIR}/gtk3/lib -lglib-2.0 -lws2_32 -lwinmm\n"
-      "Cflags: -I$(GTK_DIR)/include/glib-2.0 -I$(GTK_DIR)/lib/glib-2.0/include\n"
+      "Cflags: -I${PROJECT_SOURCE_DIR}/gtk3/include/glib-2.0 -I$(GTK_DIR)/lib/glib-2.0/include\n"
       )
 
   file(WRITE ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/gthread-2.0.pc
@@ -39,7 +39,7 @@ if (WIN32)
       "Description: GThread as packaged by the GTK+ bundle\n"
       "Requires: glib-2.0\n"
       "Version: 2.34.3\n"
-      "Libs: -L$(GTK_DIR)/lib -lgthread-2.0\n"
+      "Libs: -L${PROJECT_SOURCE_DIR}/gtk3/lib -lgthread-2.0\n"
       "Cflags:\n"
       )
 
