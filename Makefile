@@ -1,12 +1,4 @@
 
-ifeq (,$(findstring Win64,$(CMAKE_FLAGS)))
-DL_FILE := gtk+-bundle_3.6.4-20130921_win32.zip
-else
-DL_FILE := gtk+-bundle_3.6.4-20131201_win64.zip
-endif
-DL_LINK := http://win32builder.gnome.org/
-UNZIP_DIR := gtk3
-
 BUILD_SYSTEM:=$(OS)
 ifeq ($(BUILD_SYSTEM),Windows_NT)
 BUILD_SYSTEM:=$(shell uname -o 2> uname.err || echo Windows_NT) # set to Cygwin if appropriate
@@ -14,9 +6,6 @@ else
 BUILD_SYSTEM:=$(shell uname -s)
 endif
 BUILD_SYSTEM:=$(strip $(BUILD_SYSTEM))
-ifeq ($(BUILD_SYSTEM),Msys)
-BUILD_SYSTEM:=Cygwin
-endif
 
 # Figure out where to build the software.
 #   Use BUILD_PREFIX if it was passed in.
@@ -36,89 +25,59 @@ endif
 BUILD_PREFIX:=$(shell mkdir -p $(BUILD_PREFIX) && cd $(BUILD_PREFIX) && echo `pwd`)
 endif
 
-ifeq ($(BUILD_SYSTEM),$(filter $(BUILD_SYSTEM),Cygwin Windows_NT))  # the unfortunate syntax for a logic OR in gnu make (http://stackoverflow.com/a/9802777)
-
 ifeq "$(BUILD_SYSTEM)" "Cygwin"
   BUILD_PREFIX:=$(shell cygpath -m $(BUILD_PREFIX))
-  BUILD_PREFIX_MAKE:=$(shell cygpath $(BUILD_PREFIX))
-  $(shell mkdir -p $(BUILD_PREFIX)/lib/pkgconfig)
-else
-  BUILD_PREFIX_MAKE:=$(BUILD_PREFIX)
 endif
 
-GTK_DIR := $(shell pwd)/$(UNZIP_DIR)
+# Default to a release build.  If you want to enable debugging flags, run
+# "make BUILD_TYPE=Debug"
+ifeq "$(BUILD_TYPE)" ""
+  BUILD_TYPE="Release"
+endif
 
-define GLIB_PC
-Name: glib-2.0
-Description: GLIB as packaged by the GTK+ bundle
-Requires:
-Version: 2.34.3
-Libs: -L$(GTK_DIR)/lib -lglib-2.0 -lws2_32 -lwinmm
-Cflags: -I$(GTK_DIR)/include/glib-2.0 -I$(GTK_DIR)/lib/glib-2.0/include
-endef
+all: pod-build/Makefile
+	cmake --build pod-build --config $(BUILD_TYPE) --target install
 
-define GTHREAD_PC
-Name: gthread-2.0
-Description: GThread as packaged by the GTK+ bundle
-Requires: glib-2.0
-Version: 2.34.3
-Libs: -L$(GTK_DIR)/lib -lgthread-2.0
-Cflags:
-endef
+pod-build/Makefile:
+	"$(MAKE)" configure
 
-
-all: install
-
+.PHONY: configure
 configure:
-
-install: $(BUILD_PREFIX_MAKE)/lib/pkgconfig/glib-2.0.pc $(BUILD_PREFIX_MAKE)/lib/pkgconfig/gthread-2.0.pc
-
-$(UNZIP_DIR)/bin/libglib-2.0-0.dll $(UNZIP_DIR)/bin/libintl-8.dll $(UNZIP_DIR)/bin/libgthread-2.0-0.dll $(UNZIP_DIR)/bin/libiconv-2.dll $(UNZIP_DIR)/bin/pthreadGC2.dll :
-	@echo "\nDownloading GTK+ all-in-one bundle \n\n"
-	wget -T 60 $(DL_LINK)/$(DL_FILE)
-	@echo "\nunzipping to $(UNZIP_DIR) \n\n"
-	unzip $(DL_FILE) -d $(UNZIP_DIR) && rm $(DL_FILE)
+#	@echo "BUILD_SYSTEM: '$(BUILD_SYSTEM)'"
 	@echo "BUILD_PREFIX: $(BUILD_PREFIX)"
 
-$(BUILD_PREFIX_MAKE)/lib/pkgconfig/glib-2.0.pc: $(BUILD_PREFIX_MAKE)/lib/libglib-2.0-0.dll $(BUILD_PREFIX_MAKE)/lib/libintl-8.dll
-	echo "writing $@"
-	$(file > $@,$(GLIB_PC))
-
-$(BUILD_PREFIX_MAKE)/lib/pkgconfig/gthread-2.0.pc: $(BUILD_PREFIX_MAKE)/lib/libgthread-2.0-0.dll
-	echo "writing $@"
-	$(file > $@,$(GTHREAD_PC))
-
-.PRECIOUS: $(UNZIP)/bin/%
-$(BUILD_PREFIX_MAKE)/lib/% : $(UNZIP_DIR)/bin/%
-	echo "installing $@"
+# create the temporary build directory if needed
+# create the lib directory if needed, so the pkgconfig gets installed to the right place
 ifeq ($(BUILD_SYSTEM), Windows_NT)
-	copy $< $@
+	@if not exist $(BUILD_PREFIX) ( mkdir "$(BUILD_PREFIX)" )
+	@if not exist pod-build ( mkdir pod-build )
+	@if not exist $(BUILD_PREFIX)\lib ( mkdir "$(BUILD_PREFIX)\lib" )
+	@if not exist $(BUILD_PREFIX)\lib\pkgconfig ( mkdir "$(BUILD_PREFIX)\lib\pkgconfig" )
 else
-	cp -f $< $@
+	@mkdir -p pod-build
+	@mkdir -p $(BUILD_PREFIX)/lib
+	@mkdir -p $(BUILD_PREFIX)/lib/pkgconfig
 endif
 
+# run CMake to generate and configure the build scripts
+	@cd pod-build && cmake $(CMAKE_FLAGS) -DCMAKE_INSTALL_PREFIX=$(BUILD_PREFIX) \
+	       	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) ..
+
+release_filelist:
+# intentionally left blank
+
 clean:
-	-( cd $(BUILD_PREFIX_MAKE)/lib/pkgconfig && rm glib-2.0.pc gthread-2.0.pc )
-	-( cd $(BUILD_PREFIX_MAKE)/lib && rm libglib-2.0-0.dll libgthread-2.0-0.dll libintl-8.dll libiconv-2.dll pthreadGC2.dll )
+ifeq ($(BUILD_SYSTEM),Windows_NT)
+	rd /s pod-build
+else
+	-if [ -e pod-build/install_manifest.txt ]; then rm -f `cat pod-build/install_manifest.txt`; fi
+	-if [ -d pod-build ]; then cmake --build pod-build --target clean; rm -rf pod-build; fi
+endif
 
-# library dependencies (figured out using depends.exe)
-
-$(BUILD_PREFIX_MAKE)/lib/libintl-8.dll : $(BUILD_PREFIX_MAKE)/lib/libiconv-2.dll $(BUILD_PREFIX_MAKE)/lib/pthreadGC2.dll
-
-$(BUILD_PREFIX_MAKE)/lib/libgthread-2.0-0.dll : $(BUILD_PREFIX_MAKE)/lib/libglib-2.0-0.dll
-
+# other (custom) targets are passed through to the cmake-generated Makefile
+%::
+	cmake --build pod-build --config $(BUILD_TYPE) --target $@
 
 # Default to a less-verbose build.  If you want all the gory compiler output,
 # run "make VERBOSE=1"
 $(VERBOSE).SILENT:
-
-else # if not windows/cygwin, then do nothing
-
-all:
-	@echo "GTK is not supported for this build system (BUILD_SYSTEM = $(BUILD_SYSTEM)), so will not be installed"
-
-configure:
-
-clean:
-
-endif
