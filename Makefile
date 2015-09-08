@@ -18,8 +18,6 @@ ifeq ($(BUILD_SYSTEM),Msys)
 BUILD_SYSTEM:=Cygwin
 endif
 
-ifeq ($(OS),Windows_NT)
-
 # Figure out where to build the software.
 #   Use BUILD_PREFIX if it was passed in.
 #   If not, search up to four parent directories for a 'build' directory.
