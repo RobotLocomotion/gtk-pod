@@ -1,9 +1,21 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(gtk)
 
-include(ExternalProject)
+# PODs out-of-source build logic
+if (CMAKE_INSTALL_PREFIX STREQUAL "/usr/local" OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files/${PROJECT_NAME}") 
+  find_file(_build_dir build PATHS ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/.. ${PROJECT_SOURCE_DIR}/../.. ${PROJECT_SOURCE_DIR}/../../.. ${PROJECT_SOURCE_DIR}/../../../..)
+  if (_build_dir)
+      set(CMAKE_INSTALL_PREFIX "${_build_dir}")
+  else()
+    execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/build)
+    set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/build)
+  endif() 
+endif()
+message(STATUS CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
 
 if (WIN32)
+  include(ExternalProject)
+  
   string(FIND ${CMAKE_GENERATOR} Win64 is_win64)
   if (is_win64)
     set(url http://win32builder.gnome.org/gtk+-bundle_3.6.4-20131201_win64.zip)
@@ -28,6 +40,8 @@ if (WIN32)
   # note: using gtk3 dir libpath (instead of installed path) because of .lib files
   # using gtk3 dir for include files
   # would be cleaner to install all of them.  will do it another day!
+  file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/)
+
   file(WRITE ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/glib-2.0.pc
       "Name: glib-2.0\n"
       "Description: GLIB as packaged by the GTK+ bundle\n"
